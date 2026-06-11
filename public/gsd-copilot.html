@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GSD Copilot — Mews</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#FFFCF6;--pink:#FF83DA;--pink-light:#FFC5EE;--pink-lightest:#F7E1F7;
+  --charcoal:#2D2C37;--black:#000000;--white:#FFFFFF;
+  --grey-light:#EDEDEF;--grey:#C4C9DD;--grey-dark:#928FAA;
+  --yellow:#E8FF5B;--lime:#EFFD91;
+  --warning:#FFA82D;
+}
+html,body{height:100%;font-family:'Inter',sans-serif;background:var(--cream);color:var(--black)}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:56px;border-bottom:1px solid var(--grey-light);background:var(--cream);position:sticky;top:0;z-index:10}
+.nav-left{display:flex;align-items:center;gap:12px}
+.nav-wordmark{font-size:18px;font-weight:900;letter-spacing:-0.03em;color:var(--black);text-transform:uppercase}
+.nav-divider{width:1px;height:18px;background:var(--grey)}
+.nav-product{font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey-dark)}
+.nav-badge{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;background:var(--pink);color:var(--black);padding:4px 12px;border-radius:99px}
+.layout{display:grid;grid-template-columns:1fr 1fr;height:calc(100vh - 56px)}
+.left{padding:48px 40px 32px;border-right:1px solid var(--grey-light);display:flex;flex-direction:column;overflow-y:auto}
+.eyebrow{display:flex;align-items:center;gap:8px;margin-bottom:20px}
+.eyebrow-dot{width:8px;height:8px;border-radius:50%;background:var(--pink);flex-shrink:0}
+.eyebrow-text{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--black)}
+.hero-headline{font-size:42px;font-weight:900;line-height:1.0;letter-spacing:-0.02em;text-transform:uppercase;color:var(--black);margin-bottom:16px}
+.hero-sub{font-size:15px;color:var(--grey-dark);line-height:1.65;margin-bottom:28px;max-width:420px}
+.divider-line{border:none;border-top:1px solid var(--grey-light);margin-bottom:24px}
+.chat-thread{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px;margin-bottom:16px;scroll-behavior:smooth}
+.chat-thread::-webkit-scrollbar{width:3px}
+.chat-thread::-webkit-scrollbar-thumb{background:var(--grey-light);border-radius:3px}
+.msg{display:flex;gap:10px;animation:fadeUp 0.2s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{flex-direction:row-reverse}
+.avatar{width:28px;height:28px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:2px}
+.avatar.ai{background:var(--black);color:var(--white)}
+.avatar.user{background:var(--grey-light);color:var(--grey-dark);border:1px solid var(--grey)}
+.bubble{max-width:calc(100% - 42px);padding:10px 14px;border-radius:12px;line-height:1.65;font-size:14px}
+.msg.ai .bubble{background:var(--white);border:1.5px solid var(--grey-light);color:var(--black);border-top-left-radius:3px}
+.msg.user .bubble{background:var(--black);color:var(--white);border-top-right-radius:3px}
+.error-bubble{background:#FFE8E8!important;border-color:#F0A0A0!important;color:#8c1a1a!important}
+.dots{display:flex;gap:5px;align-items:center;padding:2px 0}
+.dots span{width:5px;height:5px;background:var(--grey);border-radius:50%;animation:pulse 1.4s infinite ease-in-out}
+.dots span:nth-child(2){animation-delay:0.2s}
+.dots span:nth-child(3){animation-delay:0.4s}
+@keyframes pulse{0%,80%,100%{opacity:0.3;transform:scale(0.8)}40%{opacity:1;transform:scale(1)}}
+.analysis-card{background:var(--white);border:1.5px solid var(--grey-light);border-radius:14px;overflow:hidden;max-width:calc(100% - 42px);margin-left:38px;animation:fadeUp 0.25s ease}
+.ac-header{padding:14px 18px 12px;border-bottom:1.5px solid var(--grey-light);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.ac-header-label{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-dark)}
+.verdict-pill{font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;padding:4px 12px;border-radius:99px}
+.vp-proceed{background:var(--lime);color:#1a4a1a}
+.vp-refine{background:var(--yellow);color:#4a3800}
+.vp-hold{background:#FFD0D0;color:#6b1a1a}
+.ac-section{padding:13px 18px;border-bottom:1.5px solid var(--grey-light)}
+.ac-section:last-child{border-bottom:none}
+.ac-label{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-dark);margin-bottom:7px;display:flex;align-items:center;gap:7px}
+.ac-label-dot{width:5px;height:5px;border-radius:50%;background:var(--pink);flex-shrink:0}
+.inline-badge{font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:2px 9px;border-radius:99px}
+.ib-high-align,.ib-low-risk{background:var(--lime);color:#1a4a1a}
+.ib-medium-align,.ib-medium-risk{background:var(--yellow);color:#4a3800}
+.ib-low-align,.ib-high-risk{background:#FFD0D0;color:#6b1a1a}
+.ib-tier{background:var(--pink-lightest);color:#6b006b}
+.ac-text{font-size:13px;color:var(--black);line-height:1.6}
+.ac-list{list-style:none;display:flex;flex-direction:column;gap:6px}
+.ac-list li{font-size:13px;color:var(--black);line-height:1.55;padding-left:16px;position:relative}
+.ac-list li::before{content:'→';position:absolute;left:0;color:var(--grey-dark);font-size:11px;top:1px}
+.ac-list.questions li::before{content:'?';font-weight:700;color:var(--grey-dark)}
+.ac-list.missing li::before{content:'⚠';color:var(--warning)}
+.ac-rationale{padding:13px 18px;background:var(--pink-lightest);border-top:1.5px solid var(--pink-light)}
+.ac-rationale .ac-label{color:#C32B96}
+.input-area{flex-shrink:0;padding-top:4px}
+.input-wrapper{display:flex;align-items:flex-end;gap:10px;background:var(--white);border:1.5px solid var(--grey-light);border-radius:14px;padding:10px 12px 10px 16px;transition:border-color 0.15s}
+.input-wrapper:focus-within{border-color:var(--pink)}
+#user-input{flex:1;background:none;border:none;outline:none;color:var(--black);font-family:'Inter',sans-serif;font-size:14px;line-height:1.55;resize:none;max-height:140px;min-height:22px;overflow-y:auto}
+#user-input::placeholder{color:var(--grey)}
+.send-btn{width:32px;height:32px;border-radius:99px;background:var(--pink);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.15s}
+.send-btn:hover{background:var(--pink-light)}
+.send-btn:disabled{background:var(--grey-light);cursor:not-allowed}
+.send-btn svg{width:14px;height:14px;color:var(--black)}
+.input-hint{font-size:11px;color:var(--grey);text-align:center;margin-top:7px;letter-spacing:0.03em}
+.right{padding:48px 40px 40px;overflow-y:auto;display:flex;flex-direction:column}
+.empty-state{flex:1;display:flex;flex-direction:column;justify-content:center;padding-bottom:80px}
+.empty-hl{font-size:28px;font-weight:900;text-transform:uppercase;letter-spacing:-0.01em;color:var(--grey-light);line-height:1.1;margin-bottom:12px}
+.empty-body{font-size:14px;color:var(--grey);line-height:1.6}
+.result-pane{display:none;flex-direction:column;gap:0}
+.result-eyebrow{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.result-title{font-size:22px;font-weight:900;letter-spacing:-0.01em;text-transform:uppercase;line-height:1.1;color:var(--black);margin-bottom:20px}
+.verdict-strip{border-radius:14px;padding:16px 20px;margin-bottom:16px}
+.vs-proceed{background:var(--lime)}
+.vs-refine{background:var(--yellow)}
+.vs-hold{background:#FFD0D0}
+.vs-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.vs-lbl{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--black);opacity:0.5}
+.vs-pill{font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;background:var(--black);color:var(--white);padding:4px 12px;border-radius:99px}
+.vs-text{font-size:14px;color:var(--black);line-height:1.6;font-weight:500}
+.metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.metric-box{background:var(--white);border:1.5px solid var(--grey-light);border-radius:12px;padding:14px 16px}
+.metric-lbl{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-dark);margin-bottom:8px}
+.badge-pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:4px 12px;border-radius:99px;margin-bottom:8px}
+.bg-lime{background:var(--lime);color:#1a4a1a}
+.bg-yellow{background:var(--yellow);color:#4a3800}
+.bg-pink-light{background:#FFD0D0;color:#6b1a1a}
+.bg-mauve{background:var(--pink-lightest);color:#6b006b}
+.metric-expl{font-size:12px;color:var(--grey-dark);line-height:1.55}
+.section-block{background:var(--white);border:1.5px solid var(--grey-light);border-radius:12px;padding:14px 18px;margin-bottom:10px}
+.section-lbl{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey-dark);margin-bottom:11px;display:flex;align-items:center;gap:7px}
+.section-lbl-dot{width:5px;height:5px;border-radius:50%;background:var(--pink);flex-shrink:0}
+.q-list{list-style:none;display:flex;flex-direction:column;gap:7px}
+.q-list li{font-size:13px;color:var(--black);line-height:1.6;display:flex;gap:9px;align-items:flex-start}
+.q-bullet{width:5px;height:5px;border-radius:50%;background:var(--pink);flex-shrink:0;margin-top:7px}
+.miss-list{display:flex;flex-direction:column;gap:6px}
+.miss-item{font-size:12px;color:#5c3600;background:#FFF0D9;border-left:3px solid var(--warning);border-radius:0 8px 8px 0;padding:7px 11px;line-height:1.5}
+.act-list{list-style:none;display:flex;flex-direction:column;gap:7px}
+.act-item{display:flex;gap:11px;align-items:flex-start}
+.act-num{min-width:22px;height:22px;border-radius:50%;background:var(--black);color:var(--white);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.act-text{font-size:13px;color:var(--black);line-height:1.6}
+.reset-row{display:flex;justify-content:flex-end;margin-top:8px}
+.reset-btn{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey-dark);background:none;border:1.5px solid var(--grey-light);border-radius:99px;padding:7px 16px;cursor:pointer;font-family:'Inter',sans-serif}
+.reset-btn:hover{color:var(--black);border-color:var(--grey)}
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-left">
+    <svg width="24" height="14" viewBox="0 0 483 452" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Mews symbol">
+      <path d="M393.2 0C352.15 0 317.51 69.337 306.79 163.986L303.03 193.456C300.74 211.265 274.717 211.265 272.426 193.456L268.669 163.986C258.773 98.627 233.574 52.161 204.159 52.161C174.745 52.161 149.546 98.627 139.649 163.986L135.892 193.456C133.602 211.265 107.578 211.265 105.287 193.456L101.53 163.986C92.55 120.504 74.59 90.762 53.789 90.762C24.1 90.762 0 151.33 0 226C0 300.671 24.1 361.239 53.789 361.239C74.59 361.239 92.641 331.497 101.53 288.015L105.287 258.544C107.578 240.736 133.602 240.736 135.892 258.544L139.649 288.015C149.546 353.374 174.745 399.84 204.159 399.84C233.574 399.84 258.773 353.374 268.669 288.015L272.426 258.544C274.717 240.736 300.74 240.736 303.03 258.544L306.79 288.015C317.51 382.664 352.15 452 393.2 452C442.77 452 483 350.843 483 226C483 101.158 442.86 0 393.2 0Z" fill="#FF83DA"/>
+    </svg>
+    <span class="nav-wordmark">Mews</span>
+    <div class="nav-divider"></div>
+    <span class="nav-product">GSD Copilot</span>
+  </div>
+  <span class="nav-badge">Internal tool</span>
+</nav>
+
+<div class="layout">
+  <div class="left">
+    <div class="eyebrow">
+      <span class="eyebrow-dot"></span>
+      <span class="eyebrow-text">Marketing · Idea review</span>
+    </div>
+    <h1 class="hero-headline">Cut the crap.<br>Get shit done.</h1>
+    <p class="hero-sub">Describe your idea. We'll tell you if it's worth the effort — and exactly what's missing before it is.</p>
+    <hr class="divider-line">
+    <div class="chat-thread" id="chat"></div>
+    <div class="input-area">
+      <div class="input-wrapper">
+        <textarea id="user-input" placeholder="Describe your idea, initiative, or campaign…" rows="1"></textarea>
+        <button class="send-btn" id="send-btn" title="Send">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+      <p class="input-hint">Enter to send · Shift+Enter for new line</p>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="empty-state" id="empty-state">
+      <div class="empty-hl">Your analysis<br>lands here.</div>
+      <div class="empty-body">Chat on the left.<br>We'll handle the strategic interrogation.</div>
+    </div>
+    <div class="result-pane" id="result-pane">
+      <div class="result-eyebrow">
+        <span class="eyebrow-dot"></span>
+        <span class="eyebrow-text">Idea under review</span>
+      </div>
+      <div class="result-title" id="r-title"></div>
+      <div class="verdict-strip" id="r-verdict-strip">
+        <div class="vs-top">
+          <span class="vs-lbl">Recommendation</span>
+          <span class="vs-pill" id="r-verdict-pill"></span>
+        </div>
+        <div class="vs-text" id="r-verdict-text"></div>
+      </div>
+      <div class="metrics-grid">
+        <div class="metric-box">
+          <div class="metric-lbl">Marketing tier</div>
+          <div id="r-tier-badge"></div>
+          <div class="metric-expl" id="r-tier-expl"></div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-lbl">Roadmap alignment</div>
+          <div id="r-align-badge"></div>
+          <div class="metric-expl" id="r-align-expl"></div>
+        </div>
+      </div>
+      <div class="metrics-grid" style="margin-top:-4px">
+        <div class="metric-box" style="grid-column:1/-1">
+          <div class="metric-lbl">Scope creep risk</div>
+          <div id="r-scope-badge"></div>
+          <div class="metric-expl" id="r-scope-expl"></div>
+        </div>
+      </div>
+      <div class="section-block">
+        <div class="section-lbl"><span class="section-lbl-dot"></span>Strategic questions</div>
+        <ul class="q-list" id="r-questions"></ul>
+      </div>
+      <div class="section-block" id="r-missing-block">
+        <div class="section-lbl"><span class="section-lbl-dot"></span>Missing information</div>
+        <div class="miss-list" id="r-missing"></div>
+      </div>
+      <div class="section-block">
+        <div class="section-lbl"><span class="section-lbl-dot"></span>Recommended next actions</div>
+        <ul class="act-list" id="r-actions"></ul>
+      </div>
+      <div class="reset-row">
+        <button class="reset-btn" onclick="resetAll()">← New idea</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SYSTEM_PROMPT=`You are GSD Copilot — a strategic advisor inside Mews, a hospitality tech company. You evaluate ideas, initiatives, and campaigns before they waste time or money.
+
+PERSONALITY: Direct. Senior. No filler. Sound like a trusted colleague who has read too many bad briefs, not a chatbot. Never say "Great question!", "Certainly!", "Of course!", "Absolutely!", or "Happy to help." Write short sentences. Cut any word that doesn't add meaning.
+
+---
+
+MEWS CONTEXT — USE THIS TO GROUND YOUR ANALYSIS:
+
+GTM PROCESS:
+- Every initiative needs a Birth Certificate linked to strategic themes. Birth Certs without GTM plans don't ship.
+- Marketing Tiers determine execution scale:
+  • Tier 1: Major launches (full GTM team, Asana board, pricing approval, LT sign-off, event or Unfold anchor)
+  • Tier 2: Significant feature launches (cross-functional GTM team, PMM-led execution)
+  • Tier 3: Standard releases (release notes, standard materials — but multiple Tier 3s can aggregate into a Tier 1)
+  • Tier 0: Internal/no external marketing required
+- PM owns the Birth Certificate and roadmap. PMM owns GTM execution and tiering.
+- Pricing changes require Global Pricing Manager (Henry Blackman) + LT approval.
+- Cross-functional teams must include: PM, PMM, Sales, CS, Legal (if contracting/GDPR), BizOps (if contracting/enablement).
+- Regionality matters: if a feature targets specific markets, the relevant regional Sales/CS must be looped in, but materials should still be globally available.
+
+MARKETING OPS INTAKE:
+- Intake submissions must include: problem statement, current-state workflow, future-state workflow, outcome statements, scope boundaries, dependencies, and timeline.
+- "Incomplete submissions will be returned. No detailed intake = no roadmap consideration."
+- Initiatives are classified as: Strategic / Tactical / BAU, sized as S/M/L/XL.
+- Medium+ initiatives require a discovery session — but discovery should refine, not establish, the project.
+- Ad hoc requests outside the intake window require change control governance.
+
+WHAT MAKES A GOOD BRIEF AT MEWS:
+- Clear problem statement (not solution language)
+- Defined audience and segment (SMB vs Mid-Market, specific region)
+- Linked to Mews strategic pillars
+- Marketing tier assigned
+- PM + PMM both named and aligned
+- Pricing and packaging discussed
+- Success metrics and outcome statements written
+- Cross-functional dependencies mapped
+
+---
+
+CONVERSATION FLOW:
+1. Read what the user shared. Work out what you know and what's missing.
+2. If critical info is absent (what the idea is, who it's for, what business objective it serves), ask 1–2 questions. No more. Never ask about something already stated.
+3. Once you can build a useful analysis — proceed. Infer what's reasonable, state your assumption, move on.
+
+CONCISENESS RULES FOR CONVERSATIONAL REPLIES:
+- 2–4 sentences maximum for a clarifying reply.
+- No bullet points, no headers, no markdown in conversational mode.
+- One idea per message. If you have two questions, pick the more important one.
+
+OUTPUT FORMAT — CRITICAL:
+When ready to deliver the analysis, output ONLY the JSON block below — no text before or after.
+
+\`\`\`analysis-json
+{
+  "type": "analysis",
+  "ideaTitle": "Short title for this idea (inferred if not given)",
+  "marketingTier": {
+    "tier": "Tier 1|Tier 2|Tier 3|Tier 0",
+    "rationale": "One sentence."
+  },
+  "roadmap": {
+    "verdict": "High|Medium|Low",
+    "explanation": "2-3 sentences max."
+  },
+  "scopeCreep": {
+    "verdict": "Low|Medium|High",
+    "explanation": "2-3 sentences max."
+  },
+  "strategicQuestions": ["Question 1","Question 2","Question 3","Question 4","Question 5"],
+  "missingInfo": ["Item 1","Item 2"],
+  "nextActions": ["Action 1","Action 2","Action 3"],
+  "recommendation": {
+    "verdict": "Proceed|Proceed With Refinement|Do Not Proceed Yet",
+    "rationale": "2 sentences. Direct."
+  }
+}
+\`\`\``;
+
+const GREETING="Tell me about the initiative, campaign, or idea you're trying to move forward. The more context you give me upfront — the audience, the goal, the market, what's already been tried — the sharper the analysis.";
+
+const chat=document.getElementById('chat');
+const input=document.getElementById('user-input');
+const sendBtn=document.getElementById('send-btn');
+let history=[],isThinking=false;
+
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function tryParse(t){const m=t.match(/```analysis-json\s*([\s\S]*?)```/);if(!m)return null;try{return JSON.parse(m[1].trim())}catch{return null}}
+function vpClass(v){return v==='Proceed'?'vp-proceed':v==='Do Not Proceed Yet'?'vp-hold':'vp-refine'}
+function vsClass(v){return v==='Proceed'?'vs-proceed':v==='Do Not Proceed Yet'?'vs-hold':'vs-refine'}
+function alignClass(v){return v==='High'?'bg-lime':v==='Low'?'bg-pink-light':'bg-yellow'}
+function riskClass(v){return v==='Low'?'bg-lime':v==='High'?'bg-pink-light':'bg-yellow'}
+function tierClass(t){return t==='Tier 1'?'bg-pink-light':t==='Tier 2'?'bg-yellow':t==='Tier 3'?'bg-lime':'bg-mauve'}
+
+function addMsg(role,content){
+  const msg=document.createElement('div');msg.className='msg '+role;
+  const av=document.createElement('div');av.className='avatar '+role;av.textContent=role==='ai'?'G':'U';
+  if(role==='ai'){
+    const p=tryParse(content);
+    if(p){msg.appendChild(av);msg.appendChild(buildCard(p));renderPane(p);}
+    else{const b=document.createElement('div');b.className='bubble';b.textContent=content;msg.appendChild(av);msg.appendChild(b);}
+  } else {
+    const b=document.createElement('div');b.className='bubble';b.textContent=content;msg.appendChild(av);msg.appendChild(b);
+  }
+  chat.appendChild(msg);chat.scrollTop=chat.scrollHeight;
+}
+
+function addError(t){
+  const msg=document.createElement('div');msg.className='msg ai';
+  const av=document.createElement('div');av.className='avatar ai';av.textContent='G';
+  const b=document.createElement('div');b.className='bubble error-bubble';b.textContent=t;
+  msg.appendChild(av);msg.appendChild(b);chat.appendChild(msg);chat.scrollTop=chat.scrollHeight;
+}
+
+function showThinking(){
+  const msg=document.createElement('div');msg.className='msg ai';msg.id='thinking';
+  const av=document.createElement('div');av.className='avatar ai';av.textContent='G';
+  const b=document.createElement('div');b.className='bubble';
+  b.innerHTML='<div class="dots"><span></span><span></span><span></span></div>';
+  msg.appendChild(av);msg.appendChild(b);chat.appendChild(msg);chat.scrollTop=chat.scrollHeight;
+}
+function removeThinking(){const el=document.getElementById('thinking');if(el)el.remove();}
+
+function buildCard(d){
+  const card=document.createElement('div');card.className='analysis-card';
+  const rv=d.recommendation?.verdict||'Proceed With Refinement';
+  card.innerHTML=`
+    <div class="ac-header"><span class="ac-header-label">Strategic analysis</span><span class="verdict-pill ${vpClass(rv)}">${escHtml(rv)}</span></div>
+    <div>
+      ${d.marketingTier?`<div class="ac-section"><div class="ac-label"><span class="ac-label-dot"></span>Marketing tier <span class="inline-badge ib-tier">${escHtml(d.marketingTier.tier)}</span></div><p class="ac-text">${escHtml(d.marketingTier.rationale)}</p></div>`:''}
+      <div class="ac-section"><div class="ac-label"><span class="ac-label-dot"></span>Roadmap alignment <span class="inline-badge ib-${(d.roadmap?.verdict||'').toLowerCase()}-align">${escHtml(d.roadmap?.verdict||'')}</span></div><p class="ac-text">${escHtml(d.roadmap?.explanation||'')}</p></div>
+      <div class="ac-section"><div class="ac-label"><span class="ac-label-dot"></span>Scope creep risk <span class="inline-badge ib-${(d.scopeCreep?.verdict||'').toLowerCase()}-risk">${escHtml(d.scopeCreep?.verdict||'')}</span></div><p class="ac-text">${escHtml(d.scopeCreep?.explanation||'')}</p></div>
+      ${d.strategicQuestions?.length?`<div class="ac-section"><div class="ac-label"><span class="ac-label-dot"></span>Strategic questions</div><ul class="ac-list questions">${d.strategicQuestions.map(q=>`<li>${escHtml(q)}</li>`).join('')}</ul></div>`:''}
+      ${d.missingInfo?.length?`<div class="ac-section"><div class="ac-label"><span class="ac-label-dot"></span>Missing information</div><ul class="ac-list missing">${d.missingInfo.map(i=>`<li>${escHtml(i)}</li>`).join('')}</ul></div>`:''}
+      ${d.nextActions?.length?`<div class="ac-section"><div class="ac-label"><span class="ac-label-dot"></span>Next actions</div><ul class="ac-list">${d.nextActions.map(a=>`<li>${escHtml(a)}</li>`).join('')}</ul></div>`:''}
+      <div class="ac-rationale"><div class="ac-label"><span class="ac-label-dot"></span>Recommendation</div><p class="ac-text">${escHtml(d.recommendation?.rationale||'')}</p></div>
+    </div>`;
+  return card;
+}
+
+function renderPane(d){
+  const rv=d.recommendation?.verdict||'Proceed With Refinement';
+  document.getElementById('r-title').textContent=(d.ideaTitle||'Your idea').toUpperCase();
+  const vs=document.getElementById('r-verdict-strip');
+  vs.className='verdict-strip '+vsClass(rv);
+  document.getElementById('r-verdict-pill').textContent=rv;
+  document.getElementById('r-verdict-text').textContent=d.recommendation?.rationale||'';
+  if(d.marketingTier){
+    document.getElementById('r-tier-badge').innerHTML=`<span class="badge-pill ${tierClass(d.marketingTier.tier)}">${escHtml(d.marketingTier.tier)}</span>`;
+    document.getElementById('r-tier-expl').textContent=d.marketingTier.rationale||'';
+  }
+  document.getElementById('r-align-badge').innerHTML=`<span class="badge-pill ${alignClass(d.roadmap?.verdict)}">${escHtml(d.roadmap?.verdict||'')}</span>`;
+  document.getElementById('r-align-expl').textContent=d.roadmap?.explanation||'';
+  document.getElementById('r-scope-badge').innerHTML=`<span class="badge-pill ${riskClass(d.scopeCreep?.verdict)}">${escHtml(d.scopeCreep?.verdict||'')} risk</span>`;
+  document.getElementById('r-scope-expl').textContent=d.scopeCreep?.explanation||'';
+  document.getElementById('r-questions').innerHTML=(d.strategicQuestions||[]).map(q=>`<li><span class="q-bullet"></span>${escHtml(q)}</li>`).join('');
+  const mb=document.getElementById('r-missing-block');
+  if(d.missingInfo?.length){document.getElementById('r-missing').innerHTML=d.missingInfo.map(m=>`<div class="miss-item">${escHtml(m)}</div>`).join('');mb.style.display='block';}
+  else{mb.style.display='none';}
+  document.getElementById('r-actions').innerHTML=(d.nextActions||[]).map((a,i)=>`<li class="act-item"><span class="act-num">${i+1}</span><span class="act-text">${escHtml(a)}</span></li>`).join('');
+  document.getElementById('empty-state').style.display='none';
+  document.getElementById('result-pane').style.display='flex';
+}
+
+async function sendMessage(text){
+  if(!text.trim()||isThinking)return;
+  isThinking=true;sendBtn.disabled=true;
+  addMsg('user',text);
+  history.push({role:'user',content:text});
+  input.value='';input.style.height='auto';
+  showThinking();
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,system:SYSTEM_PROMPT,messages:history})
+    });
+    const data=await resp.json();
+    if(!resp.ok)throw new Error(data.error?.message||'API error '+resp.status);
+    const reply=data.content?.find(b=>b.type==='text')?.text||'';
+    history.push({role:'assistant',content:reply});
+    removeThinking();addMsg('ai',reply);
+  }catch(e){removeThinking();addError('Something went wrong: '+e.message);}
+  isThinking=false;sendBtn.disabled=false;input.focus();
+}
+
+function resetAll(){
+  history=[];chat.innerHTML='';
+  document.getElementById('result-pane').style.display='none';
+  document.getElementById('empty-state').style.display='flex';
+  addMsg('ai',GREETING);
+}
+
+input.addEventListener('input',()=>{input.style.height='auto';input.style.height=Math.min(input.scrollHeight,160)+'px';});
+input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage(input.value);}});
+sendBtn.addEventListener('click',()=>sendMessage(input.value));
+addMsg('ai',GREETING);
+</script>
+</body>
+</html>
